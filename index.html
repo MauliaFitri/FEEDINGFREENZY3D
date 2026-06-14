@@ -30,7 +30,7 @@
     #size-bar-bg { width: 100%; height: 14px; background: rgba(0,20,40,0.7); border: 2px solid rgba(0,200,255,0.4); border-radius: 10px; overflow: hidden; }
     #size-bar-fill { height: 100%; width: 10%; background: linear-gradient(90deg, #00c8ff, #00ff99); border-radius: 10px; transition: width 0.3s ease; }
 
-    #controls { position: absolute; top: 16px; right: 16px; display: flex; flex-direction: column; gap: 8px; pointer-events: all; }
+    #controls { position: absolute; top: 80px; right: 16px; display: flex; flex-direction: column; gap: 8px; pointer-events: all; }
     .ctrl-btn {
       font-family: 'Bangers', cursive; font-size: 16px; letter-spacing: 1px;
       padding: 8px 18px; border-radius: 10px; border: 2px solid rgba(0,200,255,0.5);
@@ -47,8 +47,9 @@
       background: rgba(0,10,20,0.85); pointer-events: all; backdrop-filter: blur(4px);
     }
     .overlay h1 {
-      font-family: 'Bangers', cursive; font-size: 72px; letter-spacing: 4px;
+      font-family: 'Bangers', cursive; font-size: clamp(42px, 12vw, 72px); letter-spacing: 4px;
       color: #00e5ff; text-shadow: 0 0 30px #00e5ff88, 0 4px 0 #005577; margin-bottom: 8px;
+      text-align: center; width: 100%; padding: 0 16px;
     }
     .overlay p { color: #7ecfff; font-size: 15px; margin-bottom: 32px; text-align: center; max-width: 340px; line-height: 1.7; }
     .overlay .big-btn {
@@ -143,7 +144,7 @@
   </div>
 
   <div class="overlay" id="start-overlay">
-    <h1>FEEDING FRENZY</h1>
+    <h1>FEEDING FRENZY 3D</h1>
     <p>Jadilah ikan terbesar di lautan!<br>Makan ikan yang lebih kecil, hindari yang lebih besar.</p>
     <button class="big-btn" id="btn-start">🐟 MULAI MAIN</button>
     <div class="sub">WASD / Arrow Keys untuk bergerak</div>
