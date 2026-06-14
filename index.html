@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Feeding Frenzy 3D</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@400;700&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #001a2e; font-family: 'Nunito', sans-serif; overflow: hidden; color: #fff; }
+
+    #canvas-container { position: relative; width: 100vw; height: 100vh; }
+    canvas { display: block; }
+
+    #hud { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+
+    #score-panel {
+      position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
+      display: flex; gap: 32px;
+      background: rgba(0,20,40,0.7); border: 2px solid rgba(0,200,255,0.4);
+      border-radius: 16px; padding: 10px 28px; backdrop-filter: blur(6px);
+    }
+    .stat { text-align: center; }
+    .stat-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #7ecfff; opacity: 0.8; }
+    .stat-value { font-family: 'Bangers', cursive; font-size: 26px; color: #fff; letter-spacing: 1px; line-height: 1.1; }
+
+    #size-bar-wrap { position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); width: 280px; text-align: center; }
+    #size-bar-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #7ecfff; margin-bottom: 6px; }
+    #size-bar-bg { width: 100%; height: 14px; background: rgba(0,20,40,0.7); border: 2px solid rgba(0,200,255,0.4); border-radius: 10px; overflow: hidden; }
+    #size-bar-fill { height: 100%; width: 10%; background: linear-gradient(90deg, #00c8ff, #00ff99); border-radius: 10px; transition: width 0.3s ease; }
+
+    #controls { position: absolute; top: 16px; right: 16px; display: flex; flex-direction: column; gap: 8px; pointer-events: all; }
+    .ctrl-btn {
+      font-family: 'Bangers', cursive; font-size: 16px; letter-spacing: 1px;
+      padding: 8px 18px; border-radius: 10px; border: 2px solid rgba(0,200,255,0.5);
+      background: rgba(0,20,40,0.8); color: #7ecfff; cursor: pointer; transition: background 0.15s, color 0.15s, transform 0.1s;
+    }
+    .ctrl-btn:hover { background: rgba(0,200,255,0.2); color: #fff; transform: scale(1.05); }
+    .ctrl-btn:active { transform: scale(0.97); }
+
+    #guide { position: absolute; bottom: 220px; left: 16px; font-size: 11px; color: rgba(126,207,255,0.6); line-height: 1.8; }
+
+    .overlay {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      background: rgba(0,10,20,0.85); pointer-events: all; backdrop-filter: blur(4px);
+    }
+    .overlay h1 {
+      font-family: 'Bangers', cursive; font-size: 72px; letter-spacing: 4px;
+      color: #00e5ff; text-shadow: 0 0 30px #00e5ff88, 0 4px 0 #005577; margin-bottom: 8px;
+    }
+    .overlay p { color: #7ecfff; font-size: 15px; margin-bottom: 32px; text-align: center; max-width: 340px; line-height: 1.7; }
+    .overlay .big-btn {
+      font-family: 'Bangers', cursive; font-size: 26px; letter-spacing: 2px; padding: 14px 48px;
+      background: linear-gradient(135deg, #0095c8, #00e5ff); color: #001a2e; border: none;
+      border-radius: 16px; cursor: pointer; box-shadow: 0 6px 24px #00e5ff44; transition: transform 0.1s, box-shadow 0.1s;
+    }
+    .overlay .big-btn:hover { transform: scale(1.05); box-shadow: 0 8px 32px #00e5ff66; }
+    .overlay .sub { margin-top: 18px; font-size: 12px; color: rgba(126,207,255,0.5); text-align: center; }
+    #game-over-overlay .score-display { font-family: 'Bangers', cursive; font-size: 42px; color: #fff; margin-bottom: 24px; letter-spacing: 2px; }
+
+    #tooltip {
+      position: absolute; background: rgba(0,30,60,0.9); border: 1px solid rgba(0,200,255,0.4);
+      padding: 6px 14px; border-radius: 8px; font-size: 12px; color: #7ecfff;
+      pointer-events: none; display: none; z-index: 10;
+    }
+    #pause-indicator {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+      font-family: 'Bangers', cursive; font-size: 64px; color: #fff; opacity: 0;
+      pointer-events: none; letter-spacing: 4px; text-shadow: 0 0 40px #00e5ff; transition: opacity 0.2s;
+    }
+
+    /* D-Pad Buttons */
+    .dpad-btn {
+      width: 68px; height: 68px;
+      font-size: 28px; line-height: 1;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 12px; border: 2px solid rgba(0,200,255,0.5);
+      background: rgba(0,20,40,0.85); color: #7ecfff;
+      cursor: pointer; pointer-events: all;
+      user-select: none; -webkit-user-select: none;
+      transition: background 0.1s, transform 0.08s;
+      touch-action: none;
+    }
+    .dpad-btn:active, .dpad-btn.pressed {
+      background: rgba(0,200,255,0.35); color: #fff; transform: scale(0.93);
+    }
+
+    /* Kiri layar: tombol Atas & Bawah (vertikal) */
+    #dpad-left {
+      position: absolute;
+      bottom: 80px; left: 16px;
+      display: flex; flex-direction: column; gap: 8px;
+      pointer-events: none;
+    }
+
+    /* Kanan layar: tombol Kiri & Kanan (horizontal) */
+    #dpad-right {
+      position: absolute;
+      bottom: 80px; right: 16px;
+      display: flex; flex-direction: row; gap: 8px;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+<div id="canvas-container">
+  <div id="hud">
+    <div id="score-panel">
+      <div class="stat"><div class="stat-label">Skor</div><div class="stat-value" id="score-val">0</div></div>
+      <div class="stat"><div class="stat-label">Dimakan</div><div class="stat-value" id="eaten-val">0</div></div>
+      <div class="stat"><div class="stat-label">Level</div><div class="stat-value" id="level-val">1</div></div>
+    </div>
+    <div id="controls">
+      <button class="ctrl-btn" id="btn-pause">⏸ Pause</button>
+      <button class="ctrl-btn" id="btn-restart">🔄 Restart</button>
+      <button class="ctrl-btn" id="btn-cam">📷 Kamera</button>
+    </div>
+    <div id="size-bar-wrap">
+      <div id="size-bar-label">Ukuran Ikan</div>
+      <div id="size-bar-bg"><div id="size-bar-fill"></div></div>
+    </div>
+    <div id="guide">
+      WASD / ← → ↑ ↓ &nbsp;Gerak ikan<br>
+      Makan ikan lebih kecil untuk membesar<br>
+      Hindari ikan lebih besar!
+    </div>
+    <div id="pause-indicator">PAUSE</div>
+    <div id="tooltip"></div>
+
+    <!-- D-Pad Kiri: Atas & Bawah -->
+    <div id="dpad-left">
+      <button class="dpad-btn" id="btn-up">↑</button>
+      <button class="dpad-btn" id="btn-down">↓</button>
+    </div>
+
+    <!-- D-Pad Kanan: Kiri & Kanan -->
+    <div id="dpad-right">
+      <button class="dpad-btn" id="btn-left">←</button>
+      <button class="dpad-btn" id="btn-right">→</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="start-overlay">
+    <h1>FEEDING FRENZY</h1>
+    <p>Jadilah ikan terbesar di lautan!<br>Makan ikan yang lebih kecil, hindari yang lebih besar.</p>
+    <button class="big-btn" id="btn-start">🐟 MULAI MAIN</button>
+    <div class="sub">WASD / Arrow Keys untuk bergerak</div>
+  </div>
+
+  <div class="overlay" id="game-over-overlay" style="display:none;">
+    <h1>GAME OVER</h1>
+    <div class="score-display" id="final-score">Skor: 0</div>
+    <button class="big-btn" id="btn-restart-go">🔄 MAIN LAGI</button>
+  </div>
+</div>
+
+<audio id="backsound" src="BACKSOUNDMAUL.mp3" loop preload="auto"></audio>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
